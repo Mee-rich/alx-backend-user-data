@@ -16,30 +16,45 @@ auth = None
 
 AUTH_TYPE = os.getenv('AUTH_TYPE')
 
-if AUTH_TYPE == 'auth':
-    from api.vi.auth.auth import Auth
-    auth = Auth()
-elif  AUTH_TYPE == 'basic_auth':
-    from api.vi.auth.basic_auth import BasicAuth
-    auth =  BasicAuth()
+if AUTH_TYPE == 'basic_auth':
+    from api.v1.auth.basic_auth import BasicAuth
+    auth = BasicAuth()
+else:  
+    AUTH_TYPE == 'auth'
+    from api.v1.auth.auth import Auth
+    auth =  Auth()
     
 @app.before_request
 def before_request():
     """
         These checks for authorization
     """
-    if auth is None:
-        pass
-    else:
-        excluded_list = ['/api/v1/status/',
-                         '/api/v1/unauthorized/', '/api/v1/forbidden/']
+    excluded_paths = ['api/v1/status/', 'api/v1/unauthorized/',
+                        'api/v1/forbidden']
 
-        if auth.require_auth(request.path, excluded_list):
-            if auth.authorization_header(request) is None:
-                abort(401, description="Unauthorized")
-            if auth.current_user(request) is None:
-                abort(403, description='Forbidden')
-                
+    if auth is None:
+        return
+    if not auth.require_auth(request.path, excluded_paths):
+        return
+    if auth.authorization_header(request) is None:
+        return abort(401, description='Unauthorized')
+    if auth.current_user(request) is None:
+        return abort(403, description='forbidden') 
+
+    """if auth:
+        excluded_paths = [
+            '/api/v1/status/',
+            '/api/v1/unauthorized/',
+            '/api/v1/forbidden/',
+        ]
+        if auth.require_auth(request.path, excluded_paths):
+            auth_header = auth.authorization_header(request)
+            user = auth.current_user(request)
+            if auth_header is None:
+                abort(401)
+            if user is None:
+                abort(403)"""
+
 
 @app.errorhandler(404)
 def not_found(error) -> str:

@@ -13,14 +13,20 @@ class Auth():
         """
         Define which routes don't need authentication
         """
-        if path and not path.endswith('/'):
-            path = path + ('/')
-        if not path or path not in excluded_paths:
+        if path is None:
             return True
-        if  not excluded_paths or excluded_paths == []:
+
+        if excluded_paths is None or not excluded_paths:
             return True
-        if path in excluded_paths:
-            return False
+
+        if not path.endswith('/'):
+            path += '/'
+
+        for excluded_path in excluded_paths:
+            if not excluded_path.endswith('/'):
+                excluded_path += '/'
+            if path == excluded_path:
+                return False
                 
         return True
     
@@ -33,12 +39,7 @@ class Auth():
         if request is None:
             return None
         
-        header = request.headers.get('Authorization')
-        
-        if header is None:
-            return None
-        
-        return header
+        return request.headers.get('Authorization', None)
     
     
     def current_user(self, request=None) -> TypeVar('User'):
