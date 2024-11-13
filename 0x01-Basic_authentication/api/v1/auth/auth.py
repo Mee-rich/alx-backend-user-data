@@ -27,7 +27,7 @@ class Auth():
     
     def authorization_header(self, request=None) -> str:
         """
-        
+            Authorization
         """
         
         if request is None:
@@ -43,7 +43,7 @@ class Auth():
     
     def current_user(self, request=None) -> TypeVar('User'):
         """
-        
+            Current User
         """
         
         return None
