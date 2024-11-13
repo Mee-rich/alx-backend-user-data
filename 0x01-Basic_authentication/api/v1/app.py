@@ -7,7 +7,6 @@ from api.v1.views import app_views
 from flask import Flask, jsonify, abort, request
 from flask_cors import (CORS, cross_origin)
 import os
-from typing import Literal, Optional
 
 
 app = Flask(__name__)
@@ -25,8 +24,9 @@ elif  AUTH_TYPE == 'basic_auth':
     auth =  BasicAuth()
     
 @app.before_request
-def before_request() -> Optional[str]:
+def before_request():
     """
+        These checks for authorization
     """
     if auth is None:
         pass
