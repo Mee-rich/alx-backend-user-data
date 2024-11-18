@@ -1,50 +1,41 @@
 #!/usr/bin/env python3
-""" APi authentication module
+""" This is an authentication module
 """
 
 from flask import request
 from typing import List, TypeVar
+import fnmatch
 
-class Auth():
-    """ An authentication class
+class Auth:
+    """ A basic authentication
     """
-    
+
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
+        """ Checks if a path requires authentication
         """
-        Define which routes don't need authentication
-        """
-        if path is None:
+        if not path or not excluded_paths:
             return True
-
-        if excluded_paths is None or not excluded_paths:
-            return True
-
         if not path.endswith('/'):
             path += '/'
-
         for excluded_path in excluded_paths:
             if not excluded_path.endswith('/'):
                 excluded_path += '/'
-            if path == excluded_path:
+            if fnmatch.fnmatch(path, excluded_path):
                 return False
-                
+
         return True
-    
-    
+
+
     def authorization_header(self, request=None) -> str:
+        """ Gets the authorization field from the request header
         """
-            Authorization
-        """
-        
-        if request is None:
-            return None
-        
-        return request.headers.get('Authorization', None)
-    
-    
+        if request is not None:
+            return request.headers.get('Authorization', None)
+        return None
+
+
     def current_user(self, request=None) -> TypeVar('User'):
-        """
-            Current User
+        """ Gets the current user from the request
         """
         
         return None
