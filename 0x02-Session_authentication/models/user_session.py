@@ -1,15 +1,17 @@
-#!/usr/bin/env python3
-"""User session module.
+#!/usr/bin/env pyhton3
+"""Suthentication system that stores session id
+    in database
 """
-from models.base import Base
+
+from .base import Base
 
 
 class UserSession(Base):
-    """User session class.
+    """User session authentication system
     """
 
-    def __init__(self, *args: list, **kwargs: dict):
-        """Initializes a User session instance.
+    def __init__(self, *args: list, **Kwargs: dict):
+        """Initialize a UserSession instance
         """
         super().__init__(*args, **kwargs)
         self.user_id = kwargs.get('user_id')
