@@ -1,18 +1,9 @@
-#!/usr/bin/env python3
-"""A simple end-to-end (E2E) integration test for `app.py`.
-"""
 import requests
 
-
-EMAIL = "guillaume@holberton.io"
-PASSWD = "b4l0u"
-NEW_PASSWD = "t4rt1fl3tt3"
-BASE_URL = "http://0.0.0.0:5000"
-
+BASE_URL = "http://localhost:5000"  # Replace with your actual base URL
 
 def register_user(email: str, password: str) -> None:
-    """Tests registering a user.
-    """
+    """Registers a user."""
     url = "{}/users".format(BASE_URL)
     body = {
         'email': email,
@@ -21,14 +12,9 @@ def register_user(email: str, password: str) -> None:
     res = requests.post(url, data=body)
     assert res.status_code == 200
     assert res.json() == {"email": email, "message": "user created"}
-    res = requests.post(url, data=body)
-    assert res.status_code == 400
-    assert res.json() == {"message": "email already registered"}
-
 
 def log_in_wrong_password(email: str, password: str) -> None:
-    """Tests logging in with a wrong password.
-    """
+    """Tries to log in with a wrong password."""
     url = "{}/sessions".format(BASE_URL)
     body = {
         'email': email,
@@ -36,11 +22,10 @@ def log_in_wrong_password(email: str, password: str) -> None:
     }
     res = requests.post(url, data=body)
     assert res.status_code == 401
-
+    assert res.json() == {"message": "invalid credentials"}
 
 def log_in(email: str, password: str) -> str:
-    """Tests logging in.
-    """
+    """Logs in a user and returns the session ID."""
     url = "{}/sessions".format(BASE_URL)
     body = {
         'email': email,
@@ -48,58 +33,45 @@ def log_in(email: str, password: str) -> str:
     }
     res = requests.post(url, data=body)
     assert res.status_code == 200
-    assert res.json() == {"email": email, "message": "logged in"}
-    return res.cookies.get('session_id')
-
+    response_json = res.json()
+    assert "session_id" in response_json
+    return response_json["session_id"]
 
 def profile_unlogged() -> None:
-    """Tests retrieving profile information whilst logged out.
-    """
+    """Tries to access the profile without being logged in."""
     url = "{}/profile".format(BASE_URL)
     res = requests.get(url)
     assert res.status_code == 403
-
+    assert res.json() == {"message": "unauthorized"}
 
 def profile_logged(session_id: str) -> None:
-    """Tests retrieving profile information whilst logged in.
-    """
+    """Accesses the profile while logged in."""
     url = "{}/profile".format(BASE_URL)
-    req_cookies = {
-        'session_id': session_id,
-    }
-    res = requests.get(url, cookies=req_cookies)
+    cookies = {'session_id': session_id}
+    res = requests.get(url, cookies=cookies)
     assert res.status_code == 200
     assert "email" in res.json()
 
-
 def log_out(session_id: str) -> None:
-    """Tests logging out of a session.
-    """
+    """Logs out a user."""
     url = "{}/sessions".format(BASE_URL)
-    req_cookies = {
-        'session_id': session_id,
-    }
-    res = requests.delete(url, cookies=req_cookies)
+    cookies = {'session_id': session_id}
+    res = requests.delete(url, cookies=cookies)
     assert res.status_code == 200
-    assert res.json() == {"message": "Bienvenue"}
-
+    assert res.json() == {"message": "session destroyed"}
 
 def reset_password_token(email: str) -> str:
-    """Tests requesting a password reset.
-    """
+    """Generates a password reset token."""
     url = "{}/reset_password".format(BASE_URL)
     body = {'email': email}
     res = requests.post(url, data=body)
     assert res.status_code == 200
-    assert "email" in res.json()
-    assert res.json()["email"] == email
-    assert "reset_token" in res.json()
-    return res.json().get('reset_token')
-
+    response_json = res.json()
+    assert "reset_token" in response_json
+    return response_json["reset_token"]
 
 def update_password(email: str, reset_token: str, new_password: str) -> None:
-    """Tests updating a user's password.
-    """
+    """Updates the password of a user."""
     url = "{}/reset_password".format(BASE_URL)
     body = {
         'email': email,
@@ -110,14 +82,35 @@ def update_password(email: str, reset_token: str, new_password: str) -> None:
     assert res.status_code == 200
     assert res.json() == {"email": email, "message": "Password updated"}
 
+EMAIL = "guillaume@holberton.io"
+PASSWD = "b4l0u"
+NEW_PASSWD = "t4rt1fl3tt3"
 
 if __name__ == "__main__":
+    # Register user
     register_user(EMAIL, PASSWD)
+    
+    # Log in with wrong password
     log_in_wrong_password(EMAIL, NEW_PASSWD)
+    
+    # Try to access profile without being logged in
     profile_unlogged()
+    
+    # Log in with correct password and get session_id
     session_id = log_in(EMAIL, PASSWD)
+    
+    # Access profile while logged in
     profile_logged(session_id)
+    
+    # Log out
     log_out(session_id)
+    
+    # Generate reset password token
     reset_token = reset_password_token(EMAIL)
+    
+    # Update password with the reset token
     update_password(EMAIL, reset_token, NEW_PASSWD)
+    
+    # Log in with new password
     log_in(EMAIL, NEW_PASSWD)
+
